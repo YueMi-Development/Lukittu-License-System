@@ -1,17 +1,15 @@
 <img src="./.github/lukittu.png" alt="Lukittu GitHub-repository banner">
 
 <div align="center">
-  
-[![Build Status](https://img.shields.io/github/actions/workflow/status/KasperiP/lukittu/pipeline.yml?branch=main&style=flat&colorA=4153af&colorB=4153af)](https://github.com/KasperiP/lukittu/actions?query=pipeline)
-[![Discord Shield](https://img.shields.io/discord/1287496974303494214?style=flat&colorA=4153af&colorB=4153af&label=discord&logo=discord&logoColor=ffffff)](https://discord.lukittu.com)
-[![License](https://img.shields.io/github/license/kasperip/lukittu?style=flat&colorA=4153af&colorB=4153af)](https://github.com/KasperiP/lukittu/blob/main/LICENSE)
-[![Contributors](https://img.shields.io/github/contributors/KasperiP/lukittu?style=flat&colorA=4153af&colorB=4153af)](https://github.com/KasperiP/lukittu/graphs/contributors)
+
+[![Build Status](https://img.shields.io/github/actions/workflow/status/YueMi-Development/Lukittu-License-System/pipeline.yml?branch=main&style=flat&colorA=4153af&colorB=4153af)](https://github.com/YueMi-Development/Lukittu-License-System/actions?query=pipeline)
+[![License](https://img.shields.io/github/license/YueMi-Development/Lukittu-License-System?style=flat&colorA=4153af&colorB=4153af)](https://github.com/YueMi-Development/Lukittu-License-System/blob/main/LICENSE)
 
 </div>
 
 # [Lukittu](https://lukittu.com)
 
-**Lukittu** (a Finnish word meaning _"locked"_) is a modern software licensing service that provides robust APIs to enhance the security and trackability of your applications. It introduces a licensing layer to protect proprietary software from unauthorized sharing and misuse, offering benefits such as enhanced security, usage analytics, easy integration, and flexible licensing. Lukittu is particularly suitable for applications like game scripts and add-ons running on client servers, including platforms like Minecraft, FiveM, and Roblox.
+**Lukittu** (a Finnish word meaning _"locked"_) is a modern software licensing service that provides robust APIs to enhance the security and trackability of your applications. This fork is maintained by **YueMi-Development** and is customized for internal licensing management and distribution use within the YueMi ecosystem.
 
 ## Features
 
@@ -22,17 +20,11 @@
 - **Team Collaboration** – Work with your team seamlessly
 - **Comprehensive API** – Easily integrate Lukittu with your applications
 
-## Hosting Options
+## About this Fork
 
-Lukittu is available in two hosting options:
+This repository is a fork of [KasperiP/lukittu](https://github.com/KasperiP/lukittu), originally created by **KasperiP**.
 
-- **Free Tier** – Essential features for small projects at no cost
-- **Pro Tier (€2.90/month)** – Enhanced features and higher limits for commercial projects
-
-For detailed pricing and feature comparisons, visit [our website](https://lukittu.com).
-
-> [!IMPORTANT]  
-> While self-hosting Lukittu is possible, it is **not recommended** for most users. Lukittu is designed as a SaaS platform with proper security measures and ongoing maintenance. If you choose to self-host, be aware that by default anyone can register and use the platform unless you implement custom modifications. These modifications may complicate receiving updates from upstream. For more information about self-hosting requirements and limitations, please refer to our [self-hosting documentation](https://docs.lukittu.com/hosting/self-hosting).
+This fork is maintained by **YueMi-Development** and is customized for internal licensing management and distribution use within the YueMi ecosystem.
 
 ## Local Development
 
@@ -42,7 +34,7 @@ Lukittu uses a pnpm workspace monorepo structure with the following packages:
 - `apps/bot`: Lukittu's Discord bot
 - `packages/shared`: Shared code and utilities
 
-To get started with the project locally, follow the steps below:
+To get started with the project locally, follow the steps below.
 
 #### 1. Setup Environment Variables
 
@@ -120,21 +112,13 @@ Navigate to `http://localhost:3000` in your browser, and you should have everyth
 - Make sure to have all environment variables filled correctly in the `.env` file.
 - If you encounter dependency issues, try running `pnpm install --force` to refresh dependencies.
 
-## Community & Support
-
-Join our community Discord server to get help, share ideas, and connect with other developers: [https://discord.lukittu.com/](https://discord.lukittu.com/)
-
-## How to Support the Project
-
-The best way to support Lukittu is to **give it a star on GitHub** – it’s free and helps us grow the community!
-
 ## Documentation
 
 For comprehensive documentation on how to use Lukittu, visit: [https://docs.lukittu.com/introduction](https://docs.lukittu.com/introduction). **The documentation source can be found in its own repository [here](https://github.com/KasperiP/lukittu-docs).**
 
 ## Contributing
 
-We welcome contributions from the community! Whether it’s bug fixes, feature improvements, or documentation updates, your help is appreciated.
+We welcome contributions from the community! Whether it's bug fixes, feature improvements, or documentation updates, your help is appreciated.
 
 ### How to Contribute:
 
@@ -148,10 +132,12 @@ Discussing changes before implementation ensures efficient collaboration and val
 
 #### Contributors
 
-<a href="https://github.com/KasperiP/lukittu/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=KasperiP/lukittu" />
+<a href="https://github.com/YueMi-Development/Lukittu-License-System/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=YueMi-Development/Lukittu-License-System" />
 </a>
 
 ## License
 
 Lukittu is licensed under the **GNU Affero General Public License v3.0 (AGPL-3.0)**.
+
+This project is a fork of [KasperiP/lukittu](https://github.com/KasperiP/lukittu) by **KasperiP**, licensed under AGPL-3.0.
