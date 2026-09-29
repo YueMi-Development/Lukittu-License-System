@@ -177,8 +177,6 @@ jobs:
           cache-to: type=inline
           platforms: linux/amd64
           provenance: false
-          secrets: |
-            sentry_auth_token=${{ secrets.SENTRY_AUTH_TOKEN }}
           build-args: |
             NEXT_PUBLIC_BASE_URL=${{ secrets.NEXT_PUBLIC_BASE_URL }}
             NEXT_PUBLIC_TURNSTILE_SITE_KEY=${{ secrets.NEXT_PUBLIC_TURNSTILE_SITE_KEY }}
@@ -188,10 +186,6 @@ jobs:
             NEXT_PUBLIC_GITHUB_REDIRECT_URI=${{ secrets.NEXT_PUBLIC_GITHUB_REDIRECT_URI }}
             NEXT_PUBLIC_DISCORD_CLIENT_ID=${{ secrets.NEXT_PUBLIC_DISCORD_CLIENT_ID }}
             NEXT_PUBLIC_DISCORD_REDIRECT_URI=${{ secrets.NEXT_PUBLIC_DISCORD_REDIRECT_URI }}
-            NEXT_PUBLIC_SENTRY_DSN=${{ secrets.NEXT_PUBLIC_SENTRY_DSN }}
-            SENTRY_RELEASE=${{ github.ref_type == 'tag' && github.ref_name || github.sha }}
-            SENTRY_ORG=lukittu
-            SENTRY_PROJECT=lukittu-next
 
   build-bot:
     needs: [lint-bot, test-shared, lint-shared]
@@ -232,13 +226,6 @@ jobs:
           cache-to: type=inline
           platforms: linux/amd64
           provenance: false
-          secrets: |
-            sentry_auth_token=${{ secrets.SENTRY_AUTH_TOKEN }}
-          build-args: |
-            SENTRY_DSN_BOT=${{ secrets.SENTRY_DSN_BOT }}
-            SENTRY_RELEASE=${{ github.ref_type == 'tag' && github.ref_name || github.sha }}
-            SENTRY_ORG=lukittu
-            SENTRY_PROJECT=lukittu-bot
 
   build-migrate:
     needs: [test-shared, lint-shared]

@@ -36,10 +36,6 @@ ARG NEXT_PUBLIC_GITHUB_CLIENT_ID
 ARG NEXT_PUBLIC_GITHUB_REDIRECT_URI
 ARG NEXT_PUBLIC_DISCORD_CLIENT_ID
 ARG NEXT_PUBLIC_DISCORD_REDIRECT_URI
-ARG NEXT_PUBLIC_SENTRY_DSN
-ARG SENTRY_RELEASE
-ARG SENTRY_ORG
-ARG SENTRY_PROJECT
 
 # Set environment variables for the build
 ENV NEXT_PUBLIC_BASE_URL=$NEXT_PUBLIC_BASE_URL \
@@ -49,11 +45,7 @@ ENV NEXT_PUBLIC_BASE_URL=$NEXT_PUBLIC_BASE_URL \
     NEXT_PUBLIC_GITHUB_CLIENT_ID=$NEXT_PUBLIC_GITHUB_CLIENT_ID \
     NEXT_PUBLIC_GITHUB_REDIRECT_URI=$NEXT_PUBLIC_GITHUB_REDIRECT_URI \
     NEXT_PUBLIC_DISCORD_CLIENT_ID=$NEXT_PUBLIC_DISCORD_CLIENT_ID \
-    NEXT_PUBLIC_DISCORD_REDIRECT_URI=$NEXT_PUBLIC_DISCORD_REDIRECT_URI \
-    NEXT_PUBLIC_SENTRY_DSN=$NEXT_PUBLIC_SENTRY_DSN \
-    SENTRY_RELEASE=$SENTRY_RELEASE \
-    SENTRY_ORG=$SENTRY_ORG \
-    SENTRY_PROJECT=$SENTRY_PROJECT
+    NEXT_PUBLIC_DISCORD_REDIRECT_URI=$NEXT_PUBLIC_DISCORD_REDIRECT_URI
 
 
 # Copy all workspace files
@@ -72,10 +64,8 @@ WORKDIR /app/apps/web
 # Generate Prisma client
 RUN cd ../../packages/shared && pnpm run build
 
-# Build the Next.js app with Sentry auth token from secret
-RUN --mount=type=secret,id=sentry_auth_token \
-    export SENTRY_AUTH_TOKEN=$(cat /run/secrets/sentry_auth_token 2>/dev/null || echo "") && \
-    pnpm run build
+# Build the Next.js app
+RUN pnpm run build
 
 # 3. Production image, copy all the files and run next
 FROM base AS runner
