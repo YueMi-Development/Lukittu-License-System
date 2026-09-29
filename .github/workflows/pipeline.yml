@@ -177,15 +177,6 @@ jobs:
           cache-to: type=inline
           platforms: linux/amd64
           provenance: false
-          build-args: |
-            NEXT_PUBLIC_BASE_URL=${{ secrets.NEXT_PUBLIC_BASE_URL }}
-            NEXT_PUBLIC_TURNSTILE_SITE_KEY=${{ secrets.NEXT_PUBLIC_TURNSTILE_SITE_KEY }}
-            NEXT_PUBLIC_GOOGLE_CLIENT_ID=${{ secrets.NEXT_PUBLIC_GOOGLE_CLIENT_ID }}
-            NEXT_PUBLIC_GOOGLE_REDIRECT_URI=${{ secrets.NEXT_PUBLIC_GOOGLE_REDIRECT_URI }}
-            NEXT_PUBLIC_GITHUB_CLIENT_ID=${{ secrets.NEXT_PUBLIC_GITHUB_CLIENT_ID }}
-            NEXT_PUBLIC_GITHUB_REDIRECT_URI=${{ secrets.NEXT_PUBLIC_GITHUB_REDIRECT_URI }}
-            NEXT_PUBLIC_DISCORD_CLIENT_ID=${{ secrets.NEXT_PUBLIC_DISCORD_CLIENT_ID }}
-            NEXT_PUBLIC_DISCORD_REDIRECT_URI=${{ secrets.NEXT_PUBLIC_DISCORD_REDIRECT_URI }}
 
   build-bot:
     needs: [lint-bot, test-shared, lint-shared]

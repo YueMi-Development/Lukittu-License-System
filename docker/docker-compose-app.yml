@@ -1,12 +1,21 @@
 services:
   lukittu:
-    image: kassq/lukittu:${IMAGE_TAG:-latest}
+    image: ghcr.io/YueMi-Development/lukittu-web:${IMAGE_TAG:-latest}
     restart: unless-stopped
     mem_limit: 2g
     expose:
       - '3000'
     env_file: .env
     environment:
+      - NEXT_PUBLIC_BASE_URL=${NEXT_PUBLIC_BASE_URL:-https://app.lukittu.com}
+      - NEXT_PUBLIC_TURNSTILE_SITE_KEY=${NEXT_PUBLIC_TURNSTILE_SITE_KEY}
+      - NEXT_PUBLIC_GOOGLE_CLIENT_ID=${NEXT_PUBLIC_GOOGLE_CLIENT_ID}
+      - NEXT_PUBLIC_GOOGLE_REDIRECT_URI=${NEXT_PUBLIC_GOOGLE_REDIRECT_URI}
+      - NEXT_PUBLIC_GITHUB_CLIENT_ID=${NEXT_PUBLIC_GITHUB_CLIENT_ID}
+      - NEXT_PUBLIC_GITHUB_REDIRECT_URI=${NEXT_PUBLIC_GITHUB_REDIRECT_URI}
+      - NEXT_PUBLIC_DISCORD_CLIENT_ID=${NEXT_PUBLIC_DISCORD_CLIENT_ID}
+      - NEXT_PUBLIC_DISCORD_REDIRECT_URI=${NEXT_PUBLIC_DISCORD_REDIRECT_URI}
+      - NEXT_PUBLIC_SENTRY_DSN=${NEXT_PUBLIC_SENTRY_DSN:-}
       - REDIS_HOST=lukittuRedis
       - VIRTUAL_HOST=app.lukittu.com,www.app.lukittu.com
       - VIRTUAL_PORT=3000
@@ -30,7 +39,7 @@ services:
       start_period: 40s
 
   lukittuBot:
-    image: kassq/lukittu-bot:${IMAGE_TAG:-latest}
+    image: ghcr.io/YueMi-Development/lukittu-bot:${IMAGE_TAG:-latest}
     restart: unless-stopped
     env_file: .env
     environment:
