@@ -13,9 +13,6 @@ import {
 import { IExternalDevResponse } from '@/types/common-api-types';
 import { HttpStatus } from '@/types/http-status';
 import {
-  MAX_RELEASE_FILE_SIZE,
-} from '@/lib/constants/limits';
-import {
   attemptWebhookDelivery,
   AuditLogAction,
   AuditLogSource,

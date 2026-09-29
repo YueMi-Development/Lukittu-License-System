@@ -4,7 +4,6 @@ export const MAX_RELEASE_FILE_SIZE =
   1024;
 export const MAX_IMAGE_FILE_SIZE = 1024 * 1024;
 
-
 export const DEFAULT_LIMITS = {
   maxLicenses: 100,
   maxProducts: 3,

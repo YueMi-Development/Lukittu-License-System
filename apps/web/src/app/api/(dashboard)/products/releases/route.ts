@@ -14,9 +14,6 @@ import {
   SetReleaseSchema,
   setReleaseSchema,
 } from '@/lib/validation/products/set-release-schema';
-import {
-  MAX_RELEASE_FILE_SIZE,
-} from '@/lib/constants/limits';
 import { ErrorResponse } from '@/types/common-api-types';
 import { HttpStatus } from '@/types/http-status';
 import {

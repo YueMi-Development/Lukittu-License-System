@@ -1,4 +1,3 @@
-import { MAX_RELEASE_FILE_SIZE } from '@/lib/constants/limits';
 import { createAuditLog } from '@/lib/logging/audit-log';
 import {
   deleteFileFromPrivateS3,
@@ -13,15 +12,13 @@ import {
 } from '@/lib/utils/header-helpers';
 import { getMainClassFromJar } from '@/lib/utils/java-helpers';
 import { bytesToMb, bytesToSize } from '@/lib/utils/number-helpers';
+import { MAX_RELEASE_FILE_SIZE } from '@/lib/constants/limits';
 import {
   SetReleaseSchema,
   setReleaseSchema,
 } from '@/lib/validation/products/set-release-schema';
 import { ErrorResponse } from '@/types/common-api-types';
 import { HttpStatus } from '@/types/http-status';
-import {
-  MAX_RELEASE_FILE_SIZE,
-} from '@/lib/constants/limits';
 import {
   attemptWebhookDelivery,
   AuditLogAction,
