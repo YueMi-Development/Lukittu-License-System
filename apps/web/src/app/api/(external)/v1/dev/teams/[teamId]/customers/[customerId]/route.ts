@@ -532,10 +532,6 @@ export async function PUT(
         id: customerId,
         teamId,
       },
-      include: {
-        address: true,
-        discordAccount: true,
-      },
     });
 
     if (!existingCustomer) {
@@ -569,6 +565,15 @@ export async function PUT(
     let webhookEventIds: string[] = [];
 
     const response = await prisma.$transaction(async (prisma) => {
+      if (!address) {
+        await prisma.address.deleteMany({ where: { customerId } });
+      }
+      if (discordId === null || discordId === '') {
+        await prisma.customerDiscordAccount.deleteMany({
+          where: { customerId },
+        });
+      }
+
       const updatedCustomer = await prisma.customer.update({
         where: {
           teamId,
@@ -594,9 +599,7 @@ export async function PUT(
                   update: address,
                 },
               }
-            : existingCustomer.address
-              ? { delete: true }
-              : undefined,
+            : undefined,
           discordAccount:
             discordUser && discordId
               ? {
@@ -616,12 +619,7 @@ export async function PUT(
                     },
                   },
                 }
-              : (discordId === null || discordId === '') &&
-                  existingCustomer.discordAccount
-                ? {
-                    delete: true,
-                  }
-                : undefined,
+              : undefined,
         },
         include: {
           metadata: true,

@@ -1,3 +1,4 @@
+import { MAX_IMAGE_FILE_SIZE } from '@/lib/constants/limits';
 import { createAuditLog } from '@/lib/logging/audit-log';
 import {
   deleteFileFromPublicS3,
@@ -25,7 +26,6 @@ import { getTranslations } from 'next-intl/server';
 import { NextRequest, NextResponse } from 'next/server';
 import sharp from 'sharp';
 
-const MAX_FILE_SIZE = 1024 * 1024; // 1 MB
 const ALLOWED_FILE_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
 const MAX_IMAGE_DIMENSION = 300;
 
@@ -34,8 +34,7 @@ export type ITeamsEmailImageSetSuccessResponse = {
 };
 
 export type ITeamsEmailImageSetResponse =
-  | ITeamsEmailImageSetSuccessResponse
-  | ErrorResponse;
+  ITeamsEmailImageSetSuccessResponse | ErrorResponse;
 
 export async function POST(
   request: NextRequest,
@@ -44,9 +43,9 @@ export async function POST(
 
   try {
     const formData = await request.formData();
-    const file = formData.get('file') as File | null;
+    const file = formData.get('file');
 
-    if (!file || !(file instanceof File)) {
+    if (!(file instanceof File)) {
       return NextResponse.json(
         {
           message: t('validation.bad_request'),
@@ -55,11 +54,11 @@ export async function POST(
       );
     }
 
-    if (file.size > MAX_FILE_SIZE) {
+    if (file.size > MAX_IMAGE_FILE_SIZE) {
       return NextResponse.json(
         {
           message: t('validation.file_too_large', {
-            size: bytesToSize(MAX_FILE_SIZE),
+            size: bytesToSize(MAX_IMAGE_FILE_SIZE),
           }),
         },
         { status: HttpStatus.BAD_REQUEST },
@@ -242,8 +241,7 @@ export type ITeamsEmailImageDeleteSuccessResponse = {
 };
 
 export type ITeamsEmailImageDeleteResponse =
-  | ITeamsEmailImageDeleteSuccessResponse
-  | ErrorResponse;
+  ITeamsEmailImageDeleteSuccessResponse | ErrorResponse;
 
 export async function DELETE(): Promise<NextResponse> {
   const t = await getTranslations({ locale: await getLanguage() });

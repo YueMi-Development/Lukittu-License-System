@@ -60,10 +60,18 @@ export async function POST(
       },
       include: {
         builtByBitIntegration: true,
+        settings: true,
+        limits: true,
+        _count: {
+          select: {
+            licenses: true,
+            customers: true,
+          },
+        },
       },
     });
 
-    if (!team || !team.builtByBitIntegration) {
+    if (!team || !team.builtByBitIntegration || !team.limits) {
       logger.warn(
         'BuiltByBit placeholder: Team not found or missing integration',
         {
@@ -71,6 +79,7 @@ export async function POST(
           teamId,
           hasTeam: !!team,
           hasBuiltByBitIntegration: !!team?.builtByBitIntegration,
+          hasLimits: !!team?.limits,
         },
       );
       return NextResponse.json(
@@ -98,10 +107,29 @@ export async function POST(
       );
     }
 
-    const formData = await request.formData();
+    let formData: FormData;
+    try {
+      formData = await request.formData();
+    } catch (error) {
+      logger.warn('BuiltByBit placeholder: Failed to parse formData', {
+        requestId,
+        teamId,
+        error: error instanceof Error ? error.message : String(error),
+        errorType: error instanceof Error ? error.constructor.name : 'Unknown',
+      });
+      return NextResponse.json(
+        {
+          message: 'Invalid form data',
+        },
+        { status: HttpStatus.OK }, // Return 200 to prevent BuiltByBit from retrying the request
+      );
+    }
+
     const formDataObject: Record<string, string> = {};
     for (const [key, value] of formData.entries()) {
-      formDataObject[key] = value.toString();
+      if (typeof value === 'string') {
+        formDataObject[key] = value;
+      }
     }
 
     logger.info('BuiltByBit placeholder: Received data', {
@@ -155,7 +183,7 @@ export async function POST(
     const result = await handleBuiltByBitPlaceholder(
       requestId,
       validated.data,
-      teamId,
+      team,
     );
     const processingTime = Date.now() - startTime;
     const responseTime = Date.now() - requestTime.getTime();

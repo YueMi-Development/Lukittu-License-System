@@ -1,9 +1,7 @@
-import { DiscordIcon } from '@/components/shared/Icons';
+import { DiscordIcon, GithubIcon } from '@/components/shared/Icons';
 import {
   Ban,
   BookOpenText,
-  FileScan,
-  GithubIcon,
   KeyRound,
   LayoutGrid,
   Logs,
@@ -125,18 +123,6 @@ export function getMenuList(pathname: string): Group[] {
       groupTranslation: '',
       menus: [
         {
-          href: '/dashboard/analyzer',
-          translation: 'analyzer',
-          active: pathname === '/dashboard/analyzer',
-          icon: FileScan,
-          submenus: [],
-        },
-      ],
-    },
-    {
-      groupTranslation: '',
-      menus: [
-        {
           href: '' as Route,
           translation: 'team',
           active: pathname.startsWith('/dashboard/team'),
@@ -187,7 +173,7 @@ export function getMenuList(pathname: string): Group[] {
           href: 'https://github.com/KasperiP/lukittu',
           translation: 'github',
           active: pathname === '#',
-          icon: GithubIcon,
+          icon: GithubIcon as LucideIcon,
           submenus: [],
         },
       ],

@@ -1,3 +1,4 @@
+import { MAX_RELEASE_FILE_SIZE } from '@/lib/constants/limits';
 import { createAuditLog } from '@/lib/logging/audit-log';
 import { uploadFileToPrivateS3 } from '@/lib/providers/aws-s3';
 import { isRateLimited } from '@/lib/security/rate-limiter';
@@ -42,24 +43,22 @@ import {
 import { getTranslations } from 'next-intl/server';
 import { after, NextRequest, NextResponse } from 'next/server';
 
-
 export type IProductsReleasesCreateSuccessResponse = {
   release: Release;
 };
 
 export type IProductsReleasesCreateResponse =
-  | IProductsReleasesCreateSuccessResponse
-  | ErrorResponse;
+  IProductsReleasesCreateSuccessResponse | ErrorResponse;
 
 export async function POST(request: NextRequest) {
   const t = await getTranslations({ locale: await getLanguage() });
 
   try {
     const formData = await request.formData();
-    const file = formData.get('file') as File | null;
-    const data = formData.get('data') as string | null;
+    const fileEntry = formData.get('file');
+    const dataEntry = formData.get('data');
 
-    if (!data) {
+    if (typeof dataEntry !== 'string') {
       return NextResponse.json(
         {
           message: t('validation.bad_request'),
@@ -68,7 +67,29 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const body = JSON.parse(data) as SetReleaseSchema;
+    if (fileEntry !== null && !(fileEntry instanceof File)) {
+      return NextResponse.json(
+        {
+          message: t('validation.bad_request'),
+        },
+        { status: HttpStatus.BAD_REQUEST },
+      );
+    }
+
+    const file = fileEntry;
+
+    let body: SetReleaseSchema;
+    try {
+      body = JSON.parse(dataEntry) as SetReleaseSchema;
+    } catch {
+      return NextResponse.json(
+        {
+          message: t('validation.bad_request'),
+        },
+        { status: HttpStatus.BAD_REQUEST },
+      );
+    }
+
     const validated = await setReleaseSchema(t).safeParseAsync(body);
 
     if (!validated.success) {
@@ -90,15 +111,6 @@ export async function POST(request: NextRequest) {
       licenseIds,
       branchId,
     } = body;
-
-    if (file && !(file instanceof File)) {
-      return NextResponse.json(
-        {
-          message: t('validation.bad_request'),
-        },
-        { status: HttpStatus.BAD_REQUEST },
-      );
-    }
 
     if (file && file.size > MAX_RELEASE_FILE_SIZE) {
       return NextResponse.json(
@@ -346,17 +358,7 @@ export async function POST(request: NextRequest) {
       }
 
       if (fileExtension === 'jar') {
-        const foundMainClassName = await getMainClassFromJar(file);
-        if (!foundMainClassName) {
-          return NextResponse.json(
-            {
-              message: t('validation.main_class_not_found'),
-            },
-            { status: HttpStatus.BAD_REQUEST },
-          );
-        }
-
-        mainClassName = foundMainClassName;
+        mainClassName = await getMainClassFromJar(file);
       }
 
       fileKey = `releases/${team.id}/${productId}-${version}.${fileExtension}`;
@@ -488,8 +490,7 @@ export type IProductsReleasesGetSuccessResponse = {
 };
 
 export type IProductsReleasesGetResponse =
-  | ErrorResponse
-  | IProductsReleasesGetSuccessResponse;
+  ErrorResponse | IProductsReleasesGetSuccessResponse;
 
 export async function GET(
   request: NextRequest,

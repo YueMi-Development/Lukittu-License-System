@@ -121,8 +121,8 @@ describe('getMainClassFromJar', () => {
 
     const result = await getMainClassFromJar(mockFile as unknown as File);
     expect(result).toBeNull();
-    expect(logger.error).toHaveBeenCalledWith(
-      'Invalid JAR file: plugin.yml not found',
+    expect(logger.info).toHaveBeenCalledWith(
+      'plugin.yml not found in JAR, skipping main class extraction',
     );
   });
 
@@ -136,7 +136,7 @@ describe('getMainClassFromJar', () => {
 
     const result = await getMainClassFromJar(mockFile as unknown as File);
     expect(result).toBeNull();
-    expect(logger.error).toHaveBeenCalledWith(
+    expect(logger.info).toHaveBeenCalledWith(
       'Main class not found in plugin.yml',
       {
         pluginYaml: expect.objectContaining({
@@ -180,7 +180,8 @@ commands:
     const result = await getMainClassFromJar(mockFile as unknown as File);
     expect(result).toBeNull();
     expect(logger.error).toHaveBeenCalledWith(
-      'Invalid JAR file: plugin.yml not found',
+      'Failed to read JAR file',
+      expect.objectContaining({ error: expect.any(Error) }),
     );
   });
 });

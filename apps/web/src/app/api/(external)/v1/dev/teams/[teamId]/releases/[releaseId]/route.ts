@@ -1,3 +1,4 @@
+import { MAX_RELEASE_FILE_SIZE } from '@/lib/constants/limits';
 import { createAuditLog } from '@/lib/logging/audit-log';
 import {
   deleteFileFromPrivateS3,
@@ -30,8 +31,6 @@ import {
 import crypto from 'crypto';
 import { headers } from 'next/headers';
 import { after, NextRequest, NextResponse } from 'next/server';
-
-const MAX_FILE_SIZE = 1024 * 1024 * 10; // 10MB
 
 export async function PUT(
   request: NextRequest,
@@ -138,7 +137,7 @@ export async function PUT(
 
     if (ipAddress) {
       const key = `dev-releases-update:${ipAddress}`;
-      const isLimited = await isRateLimited(key, 5, 300); // 5 requests per 5 minutes
+      const isLimited = await isRateLimited(key, 40, 300); // 40 requests per 5 minutes
 
       if (isLimited) {
         const responseTime = Date.now() - requestTime.getTime();
@@ -168,10 +167,10 @@ export async function PUT(
     }
 
     const formData = await request.formData();
-    const file = formData.get('file') as File | null;
-    const data = formData.get('data') as string | null;
+    const fileEntry = formData.get('file');
+    const dataEntry = formData.get('data');
 
-    if (!data) {
+    if (typeof dataEntry !== 'string') {
       const responseTime = Date.now() - requestTime.getTime();
 
       logger.warn('Dev API: Missing data field in release update', {
@@ -197,9 +196,25 @@ export async function PUT(
       );
     }
 
+    if (fileEntry !== null && !(fileEntry instanceof File)) {
+      return NextResponse.json(
+        {
+          data: null,
+          result: {
+            details: 'Invalid file',
+            timestamp: new Date(),
+            valid: false,
+          },
+        },
+        { status: HttpStatus.BAD_REQUEST },
+      );
+    }
+
+    const file = fileEntry;
+
     let body: UpdateReleaseSchema;
     try {
-      body = JSON.parse(data) as UpdateReleaseSchema;
+      body = JSON.parse(dataEntry) as UpdateReleaseSchema;
     } catch {
       const responseTime = Date.now() - requestTime.getTime();
 
@@ -273,27 +288,12 @@ export async function PUT(
       branchId,
     } = validated.data;
 
-    // Validate file
-    if (file && !(file instanceof File)) {
+    if (file && file.size > MAX_RELEASE_FILE_SIZE) {
       return NextResponse.json(
         {
           data: null,
           result: {
-            details: 'Invalid file',
-            timestamp: new Date(),
-            valid: false,
-          },
-        },
-        { status: HttpStatus.BAD_REQUEST },
-      );
-    }
-
-    if (file && file.size > MAX_FILE_SIZE) {
-      return NextResponse.json(
-        {
-          data: null,
-          result: {
-            details: `File too large. Maximum size is ${bytesToSize(MAX_FILE_SIZE)}`,
+            details: `File too large. Maximum size is ${bytesToSize(MAX_RELEASE_FILE_SIZE)}`,
             timestamp: new Date(),
             valid: false,
           },
@@ -554,22 +554,7 @@ export async function PUT(
       }
 
       if (fileExtension === 'jar') {
-        const foundMainClassName = await getMainClassFromJar(file);
-        if (!foundMainClassName) {
-          return NextResponse.json(
-            {
-              data: null,
-              result: {
-                details: 'Main class not found in JAR file',
-                timestamp: new Date(),
-                valid: false,
-              },
-            },
-            { status: HttpStatus.BAD_REQUEST },
-          );
-        }
-
-        mainClassName = foundMainClassName;
+        mainClassName = await getMainClassFromJar(file);
       }
 
       fileKey = `releases/${team.id}/${productId}-${version}.${fileExtension}`;

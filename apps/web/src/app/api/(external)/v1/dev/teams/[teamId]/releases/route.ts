@@ -1,3 +1,4 @@
+import { MAX_RELEASE_FILE_SIZE } from '@/lib/constants/limits';
 import { createAuditLog } from '@/lib/logging/audit-log';
 import { uploadFileToPrivateS3 } from '@/lib/providers/aws-s3';
 import { verifyApiAuthorization } from '@/lib/security/api-key-auth';
@@ -33,7 +34,6 @@ import {
 import crypto from 'crypto';
 import { headers } from 'next/headers';
 import { after, NextRequest, NextResponse } from 'next/server';
-
 
 export async function POST(
   request: NextRequest,
@@ -112,7 +112,7 @@ export async function POST(
 
     if (ipAddress) {
       const key = `dev-releases-create:${ipAddress}`;
-      const isLimited = await isRateLimited(key, 5, 300); // 5 requests per 5 minutes
+      const isLimited = await isRateLimited(key, 40, 300); // 40 requests per 5 minutes
 
       if (isLimited) {
         const responseTime = Date.now() - requestTime.getTime();
@@ -141,10 +141,10 @@ export async function POST(
     }
 
     const formData = await request.formData();
-    const file = formData.get('file') as File | null;
-    const data = formData.get('data') as string | null;
+    const fileEntry = formData.get('file');
+    const dataEntry = formData.get('data');
 
-    if (!data) {
+    if (typeof dataEntry !== 'string') {
       const responseTime = Date.now() - requestTime.getTime();
 
       logger.warn('Dev API: Missing data field in release creation', {
@@ -169,9 +169,25 @@ export async function POST(
       );
     }
 
+    if (fileEntry !== null && !(fileEntry instanceof File)) {
+      return NextResponse.json(
+        {
+          data: null,
+          result: {
+            details: 'Invalid file',
+            timestamp: new Date(),
+            valid: false,
+          },
+        },
+        { status: HttpStatus.BAD_REQUEST },
+      );
+    }
+
+    const file = fileEntry;
+
     let body: CreateReleaseSchema;
     try {
-      body = JSON.parse(data) as CreateReleaseSchema;
+      body = JSON.parse(dataEntry) as CreateReleaseSchema;
     } catch {
       const responseTime = Date.now() - requestTime.getTime();
 
@@ -241,21 +257,6 @@ export async function POST(
       licenseIds,
       branchId,
     } = validated.data;
-
-    // Validate file
-    if (file && !(file instanceof File)) {
-      return NextResponse.json(
-        {
-          data: null,
-          result: {
-            details: 'Invalid file',
-            timestamp: new Date(),
-            valid: false,
-          },
-        },
-        { status: HttpStatus.BAD_REQUEST },
-      );
-    }
 
     if (file && file.size > MAX_RELEASE_FILE_SIZE) {
       return NextResponse.json(
@@ -497,22 +498,7 @@ export async function POST(
       }
 
       if (fileExtension === 'jar') {
-        const foundMainClassName = await getMainClassFromJar(file);
-        if (!foundMainClassName) {
-          return NextResponse.json(
-            {
-              data: null,
-              result: {
-                details: 'Main class not found in JAR file',
-                timestamp: new Date(),
-                valid: false,
-              },
-            },
-            { status: HttpStatus.BAD_REQUEST },
-          );
-        }
-
-        mainClassName = foundMainClassName;
+        mainClassName = await getMainClassFromJar(file);
       }
 
       fileKey = `releases/${team.id}/${productId}-${version}.${fileExtension}`;
