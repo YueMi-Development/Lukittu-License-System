@@ -38,8 +38,6 @@ interface SetDiscordIntegrationModalProps {
   onOpenChange: (boolean: boolean) => void;
 }
 
-const DISCORD_BOT_URL = `https://discord.com/oauth2/authorize?client_id=${process.env.NEXT_PUBLIC_DISCORD_CLIENT_ID}`;
-
 export default function SetDiscordIntegrationModal({
   discordIntegration,
   onOpenChange,
@@ -49,6 +47,15 @@ export default function SetDiscordIntegrationModal({
 
   const [submitting, setSubmitting] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [botUrl, setBotUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    fetch('/api/discord/bot-url')
+      .then((r) => r.json())
+      .then((data: { url: string }) => setBotUrl(data.url))
+      .catch(() => toast.error(t('general.error_occurred')));
+  }, [open, t]);
 
   const form = useForm<SetDiscordIntegrationSchema>({
     resolver: zodResolver(setDiscordIntegrationSchema()),
@@ -168,7 +175,8 @@ export default function SetDiscordIntegrationModal({
                 <Button
                   size="sm"
                   variant="default"
-                  onClick={() => window.open(DISCORD_BOT_URL, '_blank')}
+                  disabled={!botUrl}
+                  onClick={() => botUrl && window.open(botUrl, '_blank')}
                 >
                   {t('dashboard.integrations.install_bot')}
                 </Button>

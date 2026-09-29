@@ -8,22 +8,7 @@ export default function LoginWithGoogleButton() {
 
   const handleGoogleLogin = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
-
-    const googleUrl = new URL('https://accounts.google.com/o/oauth2/v2/auth');
-    googleUrl.searchParams.append(
-      'client_id',
-      process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID!,
-    );
-    googleUrl.searchParams.append(
-      'redirect_uri',
-      process.env.NEXT_PUBLIC_GOOGLE_REDIRECT_URI!,
-    );
-    googleUrl.searchParams.append('response_type', 'code');
-    googleUrl.searchParams.append('scope', 'email profile');
-
-    const urlString = googleUrl.toString();
-
-    window.location.href = urlString;
+    window.location.href = '/api/auth/oauth/google/login';
   };
 
   return (

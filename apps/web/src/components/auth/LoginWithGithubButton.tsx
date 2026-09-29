@@ -8,21 +8,7 @@ export default function LoginWithGithubButton() {
 
   const handleGithubLogin = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
-
-    const githubUrl = new URL('https://github.com/login/oauth/authorize');
-    githubUrl.searchParams.append(
-      'client_id',
-      process.env.NEXT_PUBLIC_GITHUB_CLIENT_ID!,
-    );
-    githubUrl.searchParams.append(
-      'redirect_uri',
-      process.env.NEXT_PUBLIC_GITHUB_REDIRECT_URI!,
-    );
-    githubUrl.searchParams.append('scope', 'user:email read:user');
-
-    const urlString = githubUrl.toString();
-
-    window.location.href = urlString;
+    window.location.href = '/api/auth/oauth/github/login';
   };
 
   return (

@@ -55,29 +55,14 @@ export default function ThirdPartyConnectionsCard() {
     }
   }, [error, t, router]);
 
+  // eslint-disable-next-line @next/next/no-location-assign-relative-destination
   const handleConnectDiscord = () => {
-    performDiscordOAuth();
+    window.location.href = '/api/auth/oauth/discord/connect';
   };
 
+  // eslint-disable-next-line @next/next/no-location-assign-relative-destination
   const handleReconnectDiscord = () => {
-    performDiscordOAuth();
-  };
-
-  const performDiscordOAuth = () => {
-    const clientId = process.env.NEXT_PUBLIC_DISCORD_CLIENT_ID;
-    const redirectUri = encodeURIComponent(
-      process.env.NEXT_PUBLIC_DISCORD_REDIRECT_URI || '',
-    );
-    const scopes = encodeURIComponent('identify guilds guilds.members.read');
-    const state = Math.random().toString(36).substring(2, 15);
-
-    const expirationDate = new Date();
-    expirationDate.setTime(expirationDate.getTime() + 10 * 60 * 1000);
-
-    document.cookie = `discord_oauth_state=${state}; path=/; expires=${expirationDate.toUTCString()}; SameSite=Lax${process.env.NODE_ENV === 'production' ? '; Secure' : ''}`;
-
-    const discordAuthUrl = `https://discord.com/api/oauth2/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=code&scope=${scopes}&state=${state}`;
-    window.location.href = discordAuthUrl;
+    window.location.href = '/api/auth/oauth/discord/connect';
   };
 
   const handleDisconnectDiscord = async () => {
