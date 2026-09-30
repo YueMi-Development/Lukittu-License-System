@@ -55,12 +55,10 @@ export default function ThirdPartyConnectionsCard() {
     }
   }, [error, t, router]);
 
-  // eslint-disable-next-line @next/next/no-location-assign-relative-destination
   const handleConnectDiscord = () => {
     window.location.href = '/api/auth/oauth/discord/connect';
   };
 
-  // eslint-disable-next-line @next/next/no-location-assign-relative-destination
   const handleReconnectDiscord = () => {
     window.location.href = '/api/auth/oauth/discord/connect';
   };

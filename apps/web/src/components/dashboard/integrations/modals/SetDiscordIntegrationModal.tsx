@@ -173,9 +173,9 @@ export default function SetDiscordIntegrationModal({
                   {t('dashboard.integrations.bot_install_description')}
                 </p>
                 <Button
+                  disabled={!botUrl}
                   size="sm"
                   variant="default"
-                  disabled={!botUrl}
                   onClick={() => botUrl && window.open(botUrl, '_blank')}
                 >
                   {t('dashboard.integrations.install_bot')}
