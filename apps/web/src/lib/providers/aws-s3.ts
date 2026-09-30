@@ -157,3 +157,33 @@ export const getFileFromPrivateS3 = async (bucket: string, fileKey: string) =>
       throw error;
     }
   });
+
+export const getFileFromPublicS3 = async (bucket: string, fileKey: string) =>
+  Sentry.startSpan({ name: 'getFileFromPublicS3', op: 's3.get' }, async () => {
+    try {
+      const getObjectParams: GetObjectCommandInput = {
+        Bucket: bucket,
+        Key: fileKey,
+      };
+
+      return publicS3Client.send(new GetObjectCommand(getObjectParams));
+    } catch (error) {
+      logger.error('Error getting file from public object storage:', error);
+      throw error;
+    }
+  });
+
+export const fileExistsInPublicS3 = async (
+  bucket: string,
+  fileKey: string,
+): Promise<boolean> => {
+  try {
+    await getFileFromPublicS3(bucket, fileKey);
+    return true;
+  } catch (error) {
+    if ((error as { name?: string }).name === 'NoSuchKey') {
+      return false;
+    }
+    throw error;
+  }
+};

@@ -120,13 +120,13 @@ export async function POST(request: NextRequest) {
 
     const imageUuid = randomUUID();
 
-    const fileKey = `users/${imageUuid}.${file.type.split('/')[1]}`;
+    const fileKey = `users/${imageUuid}.webp`;
 
     await uploadFileToPublicS3(
       process.env.PUBLIC_OBJECT_STORAGE_BUCKET_NAME!,
       fileKey,
       processedImageBuffer,
-      file.type,
+      'image/webp',
     );
 
     const imageUrl = `${process.env.PUBLIC_OBJECT_STORAGE_BASE_URL}/${fileKey}`;
