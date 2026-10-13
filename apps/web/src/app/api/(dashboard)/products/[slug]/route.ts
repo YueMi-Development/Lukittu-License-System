@@ -19,6 +19,7 @@ import {
   AuditLogTargetType,
   createWebhookEvents,
   deleteProductPayload,
+  detachRequestLogs,
   logger,
   Metadata,
   prisma,
@@ -160,6 +161,8 @@ type IProductsDeleteSuccessResponse = {
 export type IProductsDeleteResponse =
   ErrorResponse | IProductsDeleteSuccessResponse;
 
+const RELEASE_DELETE_BATCH_SIZE = 50;
+
 export async function DELETE(
   request: NextRequest,
   props: { params: Promise<{ slug: string }> },
@@ -246,73 +249,99 @@ export async function DELETE(
       );
     }
 
-    let webhookEventIds: string[] = [];
+    const releaseIds = product.releases.map((release) => release.id);
+    const files = product.releases
+      .map((release) => release.file)
+      .filter((file) => file !== null);
 
-    const response = await prisma.$transaction(async (prisma) => {
-      await prisma.product.delete({
-        where: {
-          id: productId,
-          teamId: selectedTeam,
-        },
-      });
+    await detachRequestLogs('productId', [product.id]);
+    await detachRequestLogs('releaseId', releaseIds);
+    await detachRequestLogs(
+      'releaseFileId',
+      files.map((file) => file.id),
+    );
 
-      const fileIds = product.releases
-        .map((release) => release.file?.id)
-        .filter(Boolean) as string[];
-
-      logger.info(
-        `Product ${product.id} deleted, deleting ${fileIds.length} files`,
-        {
-          product: product.id,
-          files: fileIds,
-        },
-      );
-
-      await prisma.releaseFile.deleteMany({
+    for (let i = 0; i < releaseIds.length; i += RELEASE_DELETE_BATCH_SIZE) {
+      await prisma.release.deleteMany({
         where: {
           id: {
-            in: fileIds,
+            in: releaseIds.slice(i, i + RELEASE_DELETE_BATCH_SIZE),
           },
+          productId: product.id,
         },
       });
+    }
 
-      const response = {
-        success: true,
-      };
+    let webhookEventIds: string[] = [];
 
-      await createAuditLog({
-        userId: session.user.id,
-        teamId: selectedTeam,
-        action: AuditLogAction.DELETE_PRODUCT,
-        targetId: product.id,
-        targetType: AuditLogTargetType.PRODUCT,
-        responseBody: response,
-        source: AuditLogSource.DASHBOARD,
-        tx: prisma,
-      });
+    const response = await prisma.$transaction(
+      async (prisma) => {
+        await prisma.product.delete({
+          where: {
+            id: productId,
+            teamId: selectedTeam,
+          },
+        });
 
-      webhookEventIds = await createWebhookEvents({
-        eventType: WebhookEventType.PRODUCT_DELETED,
-        teamId: selectedTeam,
-        payload: deleteProductPayload(product),
-        userId: session.user.id,
-        source: AuditLogSource.DASHBOARD,
-        tx: prisma,
-      });
+        const response = {
+          success: true,
+        };
 
-      const deleteFilePromises = fileIds.map((fileId) =>
-        deleteFileFromPrivateS3(
-          process.env.PRIVATE_OBJECT_STORAGE_BUCKET_NAME!,
-          fileId,
+        await createAuditLog({
+          userId: session.user.id,
+          teamId: selectedTeam,
+          action: AuditLogAction.DELETE_PRODUCT,
+          targetId: product.id,
+          targetType: AuditLogTargetType.PRODUCT,
+          responseBody: response,
+          source: AuditLogSource.DASHBOARD,
+          tx: prisma,
+        });
+
+        webhookEventIds = await createWebhookEvents({
+          eventType: WebhookEventType.PRODUCT_DELETED,
+          teamId: selectedTeam,
+          payload: deleteProductPayload(product),
+          userId: session.user.id,
+          source: AuditLogSource.DASHBOARD,
+          tx: prisma,
+        });
+
+        return response;
+      },
+      {
+        timeout: 20000,
+      },
+    );
+
+    logger.info(
+      `Product ${product.id} deleted, deleting ${files.length} files`,
+      {
+        product: product.id,
+        files: files.map((file) => file.id),
+      },
+    );
+
+    after(async () => {
+      const results = await Promise.allSettled(
+        files.map((file) =>
+          deleteFileFromPrivateS3(
+            process.env.PRIVATE_OBJECT_STORAGE_BUCKET_NAME!,
+            file.key,
+          ),
         ),
       );
 
-      await Promise.all(deleteFilePromises);
+      results.forEach((result, index) => {
+        if (result.status === 'rejected') {
+          logger.error('Failed to delete release file from object storage', {
+            product: product.id,
+            file: files[index].id,
+            error: result.reason,
+          });
+        }
+      });
 
-      return response;
-    });
-
-    after(async () => {
       await attemptWebhookDelivery(webhookEventIds);
     });
 

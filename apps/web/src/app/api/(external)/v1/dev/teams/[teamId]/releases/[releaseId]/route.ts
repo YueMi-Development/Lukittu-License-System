@@ -21,6 +21,7 @@ import {
   AuditLogSource,
   AuditLogTargetType,
   createWebhookEvents,
+  detachRequestLogs,
   generateMD5Hash,
   logger,
   prisma,
@@ -456,29 +457,34 @@ export async function PUT(
     }
 
     // Handle existing file deletion
-    await prisma.$transaction(
-      async (prisma) => {
-        const existingReleaseFile = await prisma.releaseFile.findUnique({
-          where: { releaseId, release: { teamId: team.id } },
-        });
+    if (file || !keepExistingFile) {
+      const replacedReleaseFile = await prisma.releaseFile.findUnique({
+        where: { releaseId, release: { teamId: team.id } },
+        select: { id: true },
+      });
 
-        const newFileUploaded = file && existingReleaseFile;
-        const fileDeleted = !file && existingReleaseFile && !keepExistingFile;
-        if (newFileUploaded || fileDeleted) {
-          await deleteFileFromPrivateS3(
-            process.env.PRIVATE_OBJECT_STORAGE_BUCKET_NAME!,
-            existingReleaseFile.key,
-          );
+      if (replacedReleaseFile) {
+        await detachRequestLogs('releaseFileId', [replacedReleaseFile.id]);
+      }
+    }
 
-          await prisma.releaseFile.delete({
-            where: { releaseId },
-          });
-        }
-      },
-      {
-        timeout: 20000,
-      },
-    );
+    const existingReleaseFile = await prisma.releaseFile.findUnique({
+      where: { releaseId, release: { teamId: team.id } },
+    });
+
+    const newFileUploaded = file && existingReleaseFile;
+    const fileDeleted = !file && existingReleaseFile && !keepExistingFile;
+    if (newFileUploaded || fileDeleted) {
+      await prisma.releaseFile.delete({
+        where: { releaseId },
+      });
+
+      // Deleted before the new upload since it may reuse the same key.
+      await deleteFileFromPrivateS3(
+        process.env.PRIVATE_OBJECT_STORAGE_BUCKET_NAME!,
+        existingReleaseFile.key,
+      );
+    }
 
     // File processing
     let fileKey: string | null = null;
